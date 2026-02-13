@@ -15,18 +15,22 @@ const getMediaType = (url: string): 'video' | 'image' => {
 
 export const SlideShow: React.FC<SlideShowProps> = ({ content, title }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const SLIDE_DURATION = 8000;
 
   useEffect(() => {
     if (!content || content.length === 0) return;
     if (content.length === 1) return;
 
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % content.length);
-    }, SLIDE_DURATION);
+    // Determine duration based on current slide index
+    // Index 0 (First Slide): 10 seconds (10000ms)
+    // Others: 8 seconds (8000ms)
+    const duration = currentIndex === 0 ? 10000 : 8000;
 
-    return () => clearInterval(interval);
-  }, [content]);
+    const timer = setTimeout(() => {
+      setCurrentIndex((prev) => (prev + 1) % content.length);
+    }, duration);
+
+    return () => clearTimeout(timer);
+  }, [currentIndex, content]);
 
   const handleInteraction = () => {
     if (!document.fullscreenElement) {
@@ -79,8 +83,7 @@ export const SlideShow: React.FC<SlideShowProps> = ({ content, title }) => {
                 <>
                     {/* 
                         LAYER 1: Background Fill 
-                        REMOVED 'filter: blur()' to prevent black screen on TVs.
-                        Using 'opacity' instead is much lighter on the GPU.
+                        Using 'opacity' is much lighter on the GPU than blur.
                     */}
                     <div style={{
                         position: 'absolute',
@@ -91,7 +94,7 @@ export const SlideShow: React.FC<SlideShowProps> = ({ content, title }) => {
                         backgroundImage: `url(${src})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
-                        opacity: 0.3, // Darkened background instead of blur
+                        opacity: 0.3, // Darkened background
                         transform: isActive ? 'scale(1.1)' : 'scale(1.0)',
                         transition: 'transform 10s linear',
                         zIndex: 1
@@ -112,7 +115,7 @@ export const SlideShow: React.FC<SlideShowProps> = ({ content, title }) => {
                             objectFit: 'contain', // Ensure full image is seen
                             position: 'relative',
                             zIndex: 2,
-                            boxShadow: '0 0 40px rgba(0,0,0,0.8)', // CSS shadow is safer than filter drop-shadow
+                            boxShadow: '0 0 40px rgba(0,0,0,0.8)',
                             transform: isActive ? 'scale(1.02)' : 'scale(1.0)',
                             transition: 'transform 10s linear',
                         }}
